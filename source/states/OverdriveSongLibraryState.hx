@@ -9,16 +9,11 @@ import overdrive.songs.ODSongLibrary;
 import overdrive.songs.ODSongMeta;
 import overdrive.ui.ODTheme;
 
-/**
- * The full local song library (master specification 4, K12 groundwork).
- *
- * Paged on purpose: one page of rows exists at a time, so adding a thousand
- * songs does not add a thousand display objects.
- */
+/** The full local song library (spec 4). One page of rows exists at a time. */
 class OverdriveSongLibraryState extends MusicBeatState
 {
 	static inline var PER_PAGE:Int = 10;
-	static inline var ALLOWED_CHARS:String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_';
+	static inline var ALLOWED_CHARS:String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 
 	var all:Array<ODSongMeta> = [];
 	var filtered:Array<ODSongMeta> = [];
@@ -92,8 +87,6 @@ class OverdriveSongLibraryState extends MusicBeatState
 		refilter(true);
 	}
 
-	// ------------------------------------------------------------------ filtering
-
 	function refilter(resetSelection:Bool = false):Void
 	{
 		filtered = [];
@@ -152,8 +145,6 @@ class OverdriveSongLibraryState extends MusicBeatState
 		}
 	}
 
-	// ------------------------------------------------------------------ playback
-
 	function playSelected():Void
 	{
 		if (busy || filtered.length == 0) return;
@@ -195,15 +186,12 @@ class OverdriveSongLibraryState extends MusicBeatState
 		}
 	}
 
-	/** Prefer Normal, then the first difficulty the week declares. */
 	static function defaultDifficultyIndex(song:ODSongMeta):Int
 	{
 		for (i in 0...song.difficulties.length)
 			if (song.difficulties[i].toLowerCase() == 'normal') return i;
 		return 0;
 	}
-
-	// ---------------------------------------------------------------------- loop
 
 	override function update(elapsed:Float):Void
 	{
@@ -262,7 +250,8 @@ class OverdriveSongLibraryState extends MusicBeatState
 				}
 			}
 
-			if (controls.ACCEPT) playSelected();
+			// ENTER, not ACCEPT: ACCEPT includes SPACE, which would fire mid-search.
+			if (FlxG.keys.justPressed.ENTER) playSelected();
 
 			if (controls.BACK && !FlxG.keys.justPressed.BACKSPACE)
 			{
