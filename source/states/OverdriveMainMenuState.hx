@@ -11,14 +11,7 @@ import overdrive.ODConfig;
 import overdrive.ui.ODTheme;
 import overdrive.ui.ODButton;
 
-/**
- * The Overdrive main menu (master specification Part E).
- *
- * Layout: logo, a large PLAY, SKINS and COMMUNITY, then a secondary row.
- *
- * Honesty rule: a tile whose system does not exist yet is created disabled and
- * carries the real reason. It is never wired to a screen that does nothing.
- */
+/** The Overdrive main menu (spec Part E). Disabled tiles state their real blocker. */
 class OverdriveMainMenuState extends MusicBeatState
 {
 	var buttons:Array<ODButton> = [];
@@ -29,14 +22,12 @@ class OverdriveMainMenuState extends MusicBeatState
 	var hint:FlxText;
 	var title:FlxText;
 	var accents:Array<FlxSprite> = [];
-
 	var timeAlive:Float = 0;
 	var leaving:Bool = false;
 
 	override function create():Void
 	{
 		super.create();
-
 		persistentUpdate = true;
 		persistentDraw = true;
 		FlxG.mouse.visible = true;
@@ -46,15 +37,12 @@ class OverdriveMainMenuState extends MusicBeatState
 		buildPrimary();
 		buildSecondary();
 		buildFooter();
-
 		refreshFocus();
 
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence('In the Menus', null);
 		#end
 	}
-
-	// ---------------------------------------------------------------- background
 
 	function buildBackground():Void
 	{
@@ -64,7 +52,6 @@ class OverdriveMainMenuState extends MusicBeatState
 		top.scrollFactor.set();
 		add(top);
 
-		// A single lighter band: cheap depth without an image asset.
 		var band:FlxSprite = new FlxSprite().makeGraphic(1, 1, ODTheme.BG_MID);
 		band.scale.set(FlxG.width, FlxG.height * 0.42);
 		band.updateHitbox();
@@ -73,7 +60,6 @@ class OverdriveMainMenuState extends MusicBeatState
 		band.scrollFactor.set();
 		add(band);
 
-		// Thin geometric accents. They drift slowly; low quality mode stops them.
 		var colours:Array<FlxColor> = [ODTheme.ACCENT, ODTheme.ACCENT_WARM, ODTheme.ACCENT_VIOLET];
 		for (i in 0...3)
 		{
@@ -100,22 +86,22 @@ class OverdriveMainMenuState extends MusicBeatState
 		add(sub);
 	}
 
-	// ------------------------------------------------------------------- buttons
-
 	function buildPrimary():Void
 	{
 		var playW:Int = 460;
 		var row:Array<ODButton> = [];
-		row.push(button('play', (FlxG.width - playW) * 0.5, 206, playW, ODTheme.BUTTON_HEIGHT_LARGE, 'PLAY', ODTheme.ACCENT, openFreeplay));
+		row.push(button('play', (FlxG.width - playW) * 0.5, 206, playW, ODTheme.BUTTON_HEIGHT_LARGE, 'PLAY', ODTheme.ACCENT, openSongSelect));
 		grid.push(row);
 
-		var pairW:Int = 260;
+		var w:Int = 196;
 		var gap:Int = ODTheme.GAP_M;
-		var pairTotal:Float = pairW * 2 + gap;
-		var pairStart:Float = (FlxG.width - pairTotal) * 0.5;
+		var total:Float = w * 3 + gap * 2;
+		var start:Float = (FlxG.width - total) * 0.5;
+
 		var second:Array<ODButton> = [];
-		second.push(button('skins', pairStart, 348, pairW, ODTheme.BUTTON_HEIGHT, 'SKINS', ODTheme.ACCENT_LIME));
-		second.push(button('community', pairStart + pairW + gap, 348, pairW, ODTheme.BUTTON_HEIGHT, 'COMMUNITY', ODTheme.ACCENT_WARM));
+		second.push(button('skins', start, 348, w, ODTheme.BUTTON_HEIGHT, 'SKINS', ODTheme.ACCENT_LIME));
+		second.push(button('songs', start + w + gap, 348, w, ODTheme.BUTTON_HEIGHT, 'SONGS', ODTheme.ACCENT_GOLD, openSongs));
+		second.push(button('community', start + (w + gap) * 2, 348, w, ODTheme.BUTTON_HEIGHT, 'COMMUNITY', ODTheme.ACCENT_WARM));
 		grid.push(second);
 	}
 
@@ -132,13 +118,9 @@ class OverdriveMainMenuState extends MusicBeatState
 
 		var row:Array<ODButton> = [];
 		for (i in 0...labels.length)
-		{
-			var b:ODButton = button(ids[i], start + i * (w + gap), 470, w, 56, labels[i], colours[i]);
-			row.push(b);
-		}
+			row.push(button(ids[i], start + i * (w + gap), 470, w, 56, labels[i], colours[i]));
 		grid.push(row);
 
-		// SETTINGS is real; everything else states the actual blocker.
 		for (b in row)
 		{
 			if (b.id == 'settings')
@@ -156,12 +138,10 @@ class OverdriveMainMenuState extends MusicBeatState
 		}
 
 		for (b in grid[1])
-		{
 			if (b.id == 'skins')
 				b.disable('Skins system not built');
 			else if (b.id == 'community')
 				b.disable('Needs the Song Portal');
-		}
 	}
 
 	function button(id:String, x:Float, y:Float, w:Int, h:Int, text:String, accent:FlxColor, ?onClick:Void->Void):ODButton
@@ -172,8 +152,6 @@ class OverdriveMainMenuState extends MusicBeatState
 		buttons.push(b);
 		return b;
 	}
-
-	// --------------------------------------------------------------------- footer
 
 	function buildFooter():Void
 	{
@@ -203,8 +181,6 @@ class OverdriveMainMenuState extends MusicBeatState
 		add(hint);
 	}
 
-	// ---------------------------------------------------------------- navigation
-
 	function focusButton(target:ODButton):Void
 	{
 		for (r in 0...grid.length)
@@ -220,7 +196,7 @@ class OverdriveMainMenuState extends MusicBeatState
 
 	function moveRow(delta:Int):Void
 	{
-		rowIdx = FlxMath.wrap(rowIdx + delta, 0, grid.length - 1);
+		rowIdx = Std.int(FlxMath.wrap(rowIdx + delta, 0, grid.length - 1));
 		colIdx = Std.int(Math.min(colIdx, grid[rowIdx].length - 1));
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 		refreshFocus();
@@ -228,7 +204,7 @@ class OverdriveMainMenuState extends MusicBeatState
 
 	function moveCol(delta:Int):Void
 	{
-		colIdx = FlxMath.wrap(colIdx + delta, 0, grid[rowIdx].length - 1);
+		colIdx = Std.int(FlxMath.wrap(colIdx + delta, 0, grid[rowIdx].length - 1));
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 		refreshFocus();
 	}
@@ -247,7 +223,12 @@ class OverdriveMainMenuState extends MusicBeatState
 		}
 		else
 		{
-			hint.text = current.id == 'play' ? 'Play the current song library' : 'Open ' + current.label.text;
+			hint.text = switch (current.id)
+			{
+				case 'play': 'Song selector';
+				case 'songs': 'Full song library';
+				default: 'Open ' + current.label.text;
+			}
 			hint.color = ODTheme.TEXT_DIM;
 		}
 	}
@@ -269,9 +250,14 @@ class OverdriveMainMenuState extends MusicBeatState
 		if (current.onClick != null) current.onClick();
 	}
 
-	function openFreeplay():Void
+	function openSongSelect():Void
 	{
-		MusicBeatState.switchState(new FreeplayState());
+		MusicBeatState.switchState(new OverdriveSongSelectState());
+	}
+
+	function openSongs():Void
+	{
+		MusicBeatState.switchState(new OverdriveSongLibraryState());
 	}
 
 	function openSettings():Void
@@ -279,8 +265,6 @@ class OverdriveMainMenuState extends MusicBeatState
 		OptionsState.onPlayState = false;
 		MusicBeatState.switchState(new OptionsState());
 	}
-
-	// ---------------------------------------------------------------------- loop
 
 	override function update(elapsed:Float):Void
 	{
@@ -311,10 +295,8 @@ class OverdriveMainMenuState extends MusicBeatState
 			FlxG.sound.music.volume = Math.min(FlxG.sound.music.volume + 0.5 * elapsed, 0.8);
 
 		if (!ClientPrefs.data.lowQuality)
-		{
 			for (i in 0...accents.length)
 				accents[i].y = Math.sin(timeAlive * 0.25 + i) * 18;
-		}
 
 		super.update(elapsed);
 	}
