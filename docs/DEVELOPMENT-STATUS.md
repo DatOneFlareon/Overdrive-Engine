@@ -1,138 +1,118 @@
 # Development Status
 
-Last updated: 2026-11-16 (Phase 2 integration). This file is the resume point.
-It must stay truthful even when that is unflattering: the specification (Part
-A4, Part AC) forbids marking anything as working that has not been run.
+Last updated: 2026-11-16 (Phase 3, song selection). This file is the resume
+point. It must stay truthful even when that is unflattering.
 
 ---
 
 ## 1. Verification legend
 
-| Term | Meaning here |
+| Term | Meaning |
 |---|---|
-| **Implemented** | Source exists in the repository and was reviewed. |
-| **Built** | Compiled to a Windows binary. **Nothing is Built yet.** |
-| **Auto-tested** | Exercised by an automated test. None exist yet. |
-| **Manual-tested** | Run by a human and observed. **Nothing is.** |
-| **Deployed** | Live on a public host. **Nothing is.** |
-| **Blocked** | Cannot proceed without something outside this environment. |
+| **Implemented** | Source exists and was reviewed. |
+| **Built** | Compiled to a Windows binary. **Nothing is Built.** |
+| **Tested** | Observed running. **Nothing is.** |
+| **Blocked** | Needs something outside this environment. |
 
 ---
 
-## 2. Commit ledger
+## 2. Commit ledger (Phase 3)
 
 | Commit | Contents |
 |---|---|
-| `fa759df` | Windows build guide, upstream baseline record |
-| `88fbf76` | `OVERDRIVE.md`, Apache-2.0 `NOTICE` |
-| `f6a6996` | `ODConfig.hx` — identity, profiles, feature flags, timeouts |
-| `9ada447` | `ODRating.hx` — global star model (G1) |
-| `de0455b` | `ODTheme.hx` — design tokens |
-| `f1c1379` | `ODButton.hx` — five-state button |
-| `ad5a102` | `OverdriveMainMenuState.hx` — the menu |
-| `ef902f7` | this ledger |
-| `da54c7f` | **title screen now opens the Overdrive menu** |
-| `379f748` | **`Project.xml` rebranded to Overdrive Engine** |
-
-The engine tree is still upstream `5c67ced…` except for the two files in §3.
+| `139af9b` | removed my two inert lines from `TitleState.hx` |
+| `4fbe4c5` | `ODRating`: `starGlyphs` fix, `bandLabel`, `categoryForDifficulty` |
+| `7b6e0c5` | `ODSongLibrary` — local library model |
+| `4082188` | `OverdriveSongSelectState` — the PLAY screen |
+| `81099db` | `OverdriveSongLibraryState` — the SONGS screen |
+| `bab1652` | menu routes PLAY and SONGS, adds the SONGS tile |
 
 ---
 
-## 3. Modified inherited files (complete list)
+## 3. Verified deviations from upstream `5c67ced`
 
-| File | Change | Diff size |
-|---|---|---|
-| `source/states/TitleState.hx` | transition target `MainMenuState` → `OverdriveMainMenuState` | 3 insertions, 2 deletions |
-| `Project.xml` | `<app>` element: title, exe name, package, company, version | 1 insertion, 1 deletion |
+`git diff --no-renames --name-status 5c67ced bab1652` → **15 paths: 13 added,
+2 modified.**
 
-Both diffs were verified by fetching the commits back and diffing against their
-parents. **`Project.xml` is exactly the intended single line** and parses as
-well-formed XML (74 top-level children, `<app>` = Overdrive Engine /
-OverdriveEngine / 0.1.0).
-
-`TitleState.hx` is **not** a clean single-line diff: besides the intended change
-it introduced two inert lines — a stray `titleJSON.startx;` statement and one
-whitespace-only line. Neither alters behaviour, but both are sloppy and must be
-removed on the next touch of that file. Everything else in the file is
-byte-identical to upstream.
-
-`PSYCH_WATERMARKS` is still defined. Removing it now would leave a blank spot on
-the loading screen because no Overdrive logo artwork exists yet.
-
----
-
-## 4. Implemented, not compiled
-
-| File | Covers | State |
-|---|---|---|
-| `ODConfig.hx` | C3 configuration, per-profile endpoints, feature flags | Implemented |
-| `ODRating.hx` | G1 star bands, G2 validation, demon tiers | Implemented |
-| `ODTheme.hx` | D1 palette, spacing, type face | Implemented |
-| `ODButton.hx` | D2 normal/hover/pressed/disabled/focus | Implemented |
-| `OverdriveMainMenuState.hx` | E1 layout, E2 separation, keyboard + mouse navigation | Implemented |
-
-### Checks actually run
-
-- Every commit fetched back: files exist at the expected paths.
-- Delimiter balance in all new `.hx` files (string/comment aware). Crude, not a
-  compile, proves nothing about types.
-- `Project.xml` parsed with an XML parser; `<app>` attributes read back.
-- `TitleState.hx` and `Project.xml` diffed against their parents; the exact
-  per-file diff is quoted in §3.
-- Engine API usage (`Paths.*`, `ClientPrefs.data.*`, `OptionsState.onPlayState`,
-  `MusicBeatState.switchState`, `Achievements.unlock`) confirmed against real
-  baseline source.
-- **Not run:** compile, launch, any menu interaction, any gameplay. There is no
-  Windows, MSVC or Haxe in this environment.
-
----
-
-## 5. Menu honesty rule
-
-Live tiles: **PLAY** (`FreeplayState`) and **SETTINGS** (`OptionsState`).
-All others are created disabled and print their real blocker when focused
-(`COMMUNITY — unavailable: Needs the Song Portal`). Spec E4 forbids decorative
-placeholders; spec A4 forbids pretending.
-
-Consequence: **E4 remains unsatisfied.** Seven tiles do not open their real
-destination. They must be replaced by real screens, never by deleting labels.
-
----
-
-## 6. Blocked
-
-| Item | Blocked by |
+| Modified | Diff |
 |---|---|
-| Any Windows build (B3, AC1, AD) | No Windows/MSVC/Haxe in this environment |
-| Song Portal, accounts, cloud saves (L, M, P) | A deployed backend and storage |
-| Multiplayer (N), clans (O), friends (Q) | Same, plus realtime service |
-| Daily/Weekly rotation (J) | Server-side time authority |
-| Original artwork, logo, icons (D1) | Artist output; none exists |
-| Upload caps, storage budget (D-B1) | Owner decision; R2 needs a payment card |
+| `Project.xml` | 1 line (`<app>` identity) |
+| `source/states/TitleState.hx` | **1 line** (`MainMenuState` → `OverdriveMainMenuState`) |
+
+The TitleState diff was re-verified after `139af9b`:
+
+```
+@@ -390 +390 @@
+-					MusicBeatState.switchState(new MainMenuState());
++					MusicBeatState.switchState(new OverdriveMainMenuState());
+```
+
+No other inherited file is touched.
 
 ---
 
-## 7. Next actions, in order
+## 4. Implemented this phase
 
-1. **Build on Windows and run gates G1–G9** (`docs/BUILDING-OVERDRIVE.md` §6),
-   now exercising the new path: title screen → Overdrive menu → PLAY → song →
-   Chart Editor. Record results in `docs/UPSTREAM-BASELINE.md`.
-   This is the top item. Nothing below should be trusted as working before it.
-2. Clean the two inert lines in `TitleState.hx`; simplify `ODRating.starGlyphs`.
-3. Song selection (F1/F2): PLAY opens the GD-style selector; `FreeplayState`
-   becomes SONGS. Do not merge them (E2).
-4. Skins (H1/H3): grid, preview, lock state, cosmetic only.
-5. Accessibility (Part 17) on top of existing `ClientPrefs`.
+| File | Purpose |
+|---|---|
+| `overdrive/songs/ODSongLibrary.hx` | Week-file loader, lock rule, search, per-week difficulties |
+| `states/OverdriveSongSelectState.hx` | PLAY: one song, prev/next, difficulty, band, mode, load |
+| `states/OverdriveSongLibraryState.hx` | SONGS: paged list, live search, category filter |
+| `states/OverdriveMainMenuState.hx` | PLAY and SONGS routed; SONGS tile added |
+| `overdrive/ODRating.hx` | `bandLabel`, `categoryForDifficulty` |
 
-Do not start Phase 5 (backend) before steps 1–2 pass on a real machine.
+### The playback path actually used
+
+```haxe
+WeekData.setDirectoryFromWeek(week);
+Difficulty.loadFromWeek(week);
+var chart = Highscore.formatSong(folder, diffIndex);
+Song.loadFromJson(chart, folder);
+PlayState.isStoryMode = false;
+PlayState.storyDifficulty = diffIndex;
+ClientPrefs.data.gameplaySettings.set('practice', practiceMode);
+LoadingState.prepareToSong();
+LoadingState.loadAndSwitchState(new PlayState());
+```
+
+That is the inherited pipeline, not a copy. `practice` is the exact key
+`PlayState` reads (`ClientPrefs.getGameplaySetting('practice')`, PlayState.hx:304)
+and the same one `GameplayChangersSubstate` writes.
 
 ---
 
-## 8. Known blemishes
+## 5. Not done, and why
 
-- `TitleState.hx`: stray `titleJSON.startx;` and one whitespace-only line (§3).
-- `ODRating.starGlyphs()`: pointless `StringTools.lpad(..., 0)` call; should be
-  `'${n}★'`.
-- `OverdriveMainMenuState`: the footer wallet shows em-dashes rather than real
-  balances because no account system exists. That is deliberate, not a bug, and
-  must change when accounts land.
+| Phase 3 item | State | Reason |
+|---|---|---|
+| Results screen | **not implemented** | Psych 1.0.4 has no results state. `PlayState.endSong()` calls `switchState(new FreeplayState())` (PlayState.hx:2502). Hooking Overdrive results needs a ~1-line edit in a ~2,600-line file; that file cannot be safely rewritten through the commit API. Needs a local `git push` with credentials, or a human edit. |
+| Skins | **not implemented** | Needs the character grid screen; no Overdrive art exists. |
+| Accessibility additions | **not implemented** | Foundation only: existing `ClientPrefs` options are untouched and still work. |
+| Star ratings per song | **absent by design** | No rating data exists. Screens show the category band (2, 3, 4-5, 6-7, 8-9, 10) and label everything else Unrated. |
+| Chart Editor via Community | **not wired here** | Community is Phase 6. The editor is still reachable the inherited way: SONGS → FreeplayState → Chart Editor. |
+
+---
+
+## 6. Checks run / not run
+
+**Run:** file presence at expected paths; delimiter balance in every Overdrive
+`.hx`; `git diff` of both modified inherited files; path audit against upstream.
+
+**Not run:** compilation, launch, menu traversal, song load, gameplay, practice
+run, results, character selection, Chart Editor. No Windows, MSVC or Haxe here.
+
+No test in Phase 3 section 13 of the prompt can be marked passed. Every one of
+them requires a running binary.
+
+---
+
+## 7. Next actions
+
+1. **Windows build + gates G1–G9**, now through: title → menu → PLAY → song →
+   Chart Editor. This is still the top item and unblocks every "tested" claim.
+2. **Results screen**: add the hook in `PlayState.endSong()` on a machine with
+   push credentials, then `OverdriveResultsState` reads `PlayState` stats.
+3. **Skins**: character grid from real `characters/` assets, cosmetic only.
+4. **Accessibility**: colourblind palettes, reduced shake/effects, UI scale,
+   note transparency — each must actually affect rendering or not ship.
+5. Then Phase 5 (backend), which is blocked on deployment and D-B1.
