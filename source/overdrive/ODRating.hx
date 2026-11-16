@@ -83,6 +83,27 @@ class ODRating
 	}
 
 	/**
+	 * Maps an inherited Psych difficulty name onto a rating category.
+	 * Returns null for anything Overdrive has no official band for (Erect,
+	 * Nightmare, custom week difficulties). Null means "unrated", never a guess.
+	 */
+	public static function categoryForDifficulty(difficultyName:String):Null<String>
+	{
+		if (difficultyName == null) return null;
+		var key:String = difficultyName.toLowerCase().trim();
+		return switch (key)
+		{
+			case 'easy': 'Easy';
+			case 'normal': 'Normal';
+			case 'hard': 'Hard';
+			case 'harder': 'Harder';
+			case 'insane': 'Insane';
+			case 'demon': 'Demon';
+			default: null;
+		}
+	}
+
+	/**
 	 * The star value that appears everywhere in the UI. Demons are always 10,
 	 * whatever their sub-difficulty is.
 	 */
@@ -94,6 +115,18 @@ class ODRating
 		if (range == null)
 			return 0;
 		return Std.int(Math.max(range.min, Math.min(range.max, rated)));
+	}
+
+	/**
+	 * Display form of a category's band. Ranges stay ranges: there is no
+	 * per-song official rating yet, so "4-5" is the truthful answer.
+	 */
+	public static function bandLabel(category:String):String
+	{
+		var range:Null<ODStarRange> = rangeFor(category);
+		if (range == null) return 'Unrated';
+		if (range.min == range.max) return '${range.min} stars';
+		return '${range.min}-${range.max} stars';
 	}
 
 	/**
@@ -135,7 +168,6 @@ class ODRating
 	public static function starGlyphs(category:String, rated:Int):String
 	{
 		var n:Int = globalStars(category, rated);
-		if (n <= 0) return '·';
-		return StringTools.lpad(Std.string(n), ' ', 0) + '★';
+		return n <= 0 ? '·' : '${n}★';
 	}
 }
